@@ -1,0 +1,14 @@
+{
+  "name": "vote",
+  "version": "1.0.0",
+  "description": "Voting front-end and API in Node.js / Express",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}

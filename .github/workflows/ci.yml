@@ -1,0 +1,25 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Vote Service
+        run: |
+          docker build -t vote-app ./vote
+
+      - name: Build Result Service
+        run: |
+          docker build -t result-app ./result
