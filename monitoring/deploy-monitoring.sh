@@ -17,5 +17,5 @@ kubectl rollout status deployment/prometheus -n monitoring --timeout=120s
 kubectl rollout status deployment/grafana -n monitoring --timeout=120s
 
 echo "Monitoring stack deployed successfully!"
-echo "Access Prometheus: kubectl port-forward -n monitoring service/prometheus 9090:9090"
-echo "Access Grafana:    kubectl port-forward -n monitoring service/grafana 3000:3000 (User: admin / admin)"
+echo "Access Prometheus: kubectl port-forward -n monitoring service/prometheus 9090:9090 --address=0.0.0.0"
+echo "Access Grafana:    kubectl port-forward -n monitoring service/grafana 3100:3000 --address=0.0.0.0 (User: admin / admin)"

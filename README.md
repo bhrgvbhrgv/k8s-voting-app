@@ -87,17 +87,17 @@ kubectl apply -f monitoring/
 
 Access the dashboards via port-forwarding:
 
-- **Grafana**:
+- **Grafana** (mapped to port **3100** to avoid conflicts):
   ```bash
-  kubectl port-forward -n monitoring service/grafana 3000:3000
+  kubectl port-forward -n monitoring service/grafana 3100:3000 --address=0.0.0.0
   ```
-  - URL: http://localhost:3000
+  - URL: http://localhost:3100
   - Default credentials: `admin` / `admin`
   - Dashboard: **Voting App Overview & Metrics** (auto-provisioned)
 
 - **Prometheus UI**:
   ```bash
-  kubectl port-forward -n monitoring service/prometheus 9090:9090
+  kubectl port-forward -n monitoring service/prometheus 9090:9090 --address=0.0.0.0
   ```
   - URL: http://localhost:9090
 
@@ -107,7 +107,7 @@ When running via `docker compose up -d`, Prometheus and Grafana start automatica
 - **Vote App**: http://localhost:5000
 - **Result App**: http://localhost:5001
 - **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (User: `admin`, Pass: `admin`)
+- **Grafana**: http://localhost:3100 (User: `admin`, Pass: `admin`)
 
 ---
 
