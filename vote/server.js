@@ -4,9 +4,26 @@ const { Pool } = require('pg');
 const crypto = require('crypto');
 const os = require('os');
 const path = require('path');
+const client = require('prom-client');
 
 const app = express();
 const port = process.env.PORT || 80;
+
+// Prometheus metrics setup
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics({ register: client.register });
+
+const voteCounter = new client.Counter({
+  name: 'votingapp_votes_total',
+  help: 'Total count of votes cast',
+  labelNames: ['option'],
+});
+
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status'],
+});
 
 const option_a = process.env.OPTION_A || 'Cats';
 const option_b = process.env.OPTION_B || 'Dogs';
@@ -40,6 +57,15 @@ initDb();
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Track HTTP requests
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    const route = req.route ? req.route.path : req.path;
+    httpRequestsTotal.inc({ method: req.method, route, status: res.statusCode });
+  });
+  next();
+});
 
 // Helper to ensure voter_id cookie
 function getOrCreateVoterId(req, res) {
@@ -89,6 +115,7 @@ app.post('/api/vote', async (req, res) => {
        ON CONFLICT (id) DO UPDATE SET vote = EXCLUDED.vote`,
       [voterId, vote]
     );
+    voteCounter.inc({ option: vote === 'a' ? option_a : option_b });
     console.log(`Vote registered: voter_id=${voterId}, vote=${vote}`);
     res.json({ success: true, voter_id: voterId, vote });
   } catch (err) {
@@ -122,6 +149,16 @@ app.post('/', async (req, res) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
+});
+
+// Prometheus metrics endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
 });
 
 // Serve compiled React build

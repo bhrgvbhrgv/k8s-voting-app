@@ -1,0 +1,77 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Connected WebSocket Clients (Result App)",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [{ "expr": "sum(votingapp_result_connected_clients) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Current Votes (Option A)",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "targets": [{ "expr": "sum(votingapp_current_votes{option=\"a\"}) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Current Votes (Option B)",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "targets": [{ "expr": "sum(votingapp_current_votes{option=\"b\"}) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Total HTTP Requests",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "targets": [{ "expr": "sum(http_requests_total) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Votes Cast Rate (per second)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 5,
+      "targets": [{ "expr": "rate(votingapp_votes_total[1m])", "legendFormat": "{{option}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate by Route",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 6,
+      "targets": [{ "expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{route}} (status {{status}})", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node.js Process Memory (RSS)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "id": 7,
+      "targets": [{ "expr": "process_resident_memory_bytes{job=~\"vote-service|result-service\"}", "legendFormat": "{{job}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node.js Process CPU Usage",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "id": 8,
+      "targets": [{ "expr": "rate(process_cpu_user_seconds_total{job=~\"vote-service|result-service\"}[1m])", "legendFormat": "{{job}} CPU User", "refId": "A" }]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["voting-app", "monitoring"],
+  "time": { "from": "now-15m", "to": "now" },
+  "title": "Voting App Overview & Metrics",
+  "uid": "voting-app-overview",
+  "version": 1
+}

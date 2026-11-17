@@ -72,6 +72,45 @@ kubectl port-forward service/result 5001:5001 --address=0.0.0.0
 
 ---
 
+## Monitoring with Prometheus & Grafana
+
+The application includes built-in Prometheus instrumentation (custom metrics for votes cast, active WebSocket clients, and HTTP request counters & latency) and a pre-configured Grafana dashboard.
+
+### Deploy Monitoring Stack on Kubernetes
+
+Deploy Prometheus & Grafana to the `monitoring` namespace:
+```bash
+./monitoring/deploy-monitoring.sh
+# or manually:
+kubectl apply -f monitoring/
+```
+
+Access the dashboards via port-forwarding:
+
+- **Grafana**:
+  ```bash
+  kubectl port-forward -n monitoring service/grafana 3000:3000
+  ```
+  - URL: http://localhost:3000
+  - Default credentials: `admin` / `admin`
+  - Dashboard: **Voting App Overview & Metrics** (auto-provisioned)
+
+- **Prometheus UI**:
+  ```bash
+  kubectl port-forward -n monitoring service/prometheus 9090:9090
+  ```
+  - URL: http://localhost:9090
+
+### Monitoring with Docker Compose
+
+When running via `docker compose up -d`, Prometheus and Grafana start automatically:
+- **Vote App**: http://localhost:5000
+- **Result App**: http://localhost:5001
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (User: `admin`, Pass: `admin`)
+
+---
+
 ## Cleanup Kind Cluster
 ```bash
 kind delete cluster --name=kind

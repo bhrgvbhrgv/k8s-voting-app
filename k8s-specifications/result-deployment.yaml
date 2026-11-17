@@ -13,6 +13,10 @@ spec:
     metadata:
       labels:
         app: result
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - image: votingapp_result:v2
