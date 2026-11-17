@@ -1,163 +1,78 @@
-# Cloud-Native Voting Application on Kubernetes (Kind)
+# Cloud-Native Voting Application (Kubernetes & Docker)
 
-A modern, production-grade cloud-native microservices voting application designed with a full **JavaScript / TypeScript / React / Node.js** stack and deployed to a multi-node **Kubernetes** cluster using **Kind**.
-
----
-
-## Architecture Overview
-
-```
-                      +-----------------------------+
-                      |       User Client           |
-                      +-----------------------------+
-                                     |
-               +---------------------+---------------------+
-               | (Port 5000)                               | (Port 5001)
-               v                                           v
-    +----------------------+                    +----------------------+
-    |     vote-service     |                    |    result-service    |
-    | (React 18 + Express) |                    | (React + Socket.io)  |
-    +----------------------+                    +----------------------+
-               |                                           ^
-               | (Direct Upsert)                           | (Live Query / WS)
-               +---------------------+---------------------+
-                                     |
-                                     v
-                        +--------------------------+
-                        |  PostgreSQL 15 Database  |
-                        |      (Stateful DB)       |
-                        +--------------------------+
-```
-
-### Components
-
-- **Vote Frontend & API (`vote/`)**:
-  - **Frontend**: Single Page Application built with **React 18** and **Vite**, featuring interactive voting buttons, instant toggle feedback, and cookie-based unique voter tracking.
-  - **Backend**: **Node.js** and **Express**, providing `/api/config` and `/api/vote` endpoints with direct persistent writes to PostgreSQL.
-
-- **Result Frontend & API (`result/`)**:
-  - **Frontend**: Single Page Application built with **React 18** and **Socket.io-client**, showing animated real-time percentages and vote counts.
-  - **Backend**: **Node.js**, **Express**, and **Socket.io**, polling PostgreSQL and broadcasting live changes via WebSockets.
-
-- **Database (`db`)**:
-  - **PostgreSQL 15 Alpine**: Persistent storage for all cast votes.
-
-- **Kubernetes Infrastructure (`kind-cluster/` & `k8s-specifications/`)**:
-  - Multi-node Kubernetes cluster configuration (1 control-plane, 2 worker nodes) running on **Kind**.
-  - Declarative Kubernetes deployments and services with NodePort mapping for external ingress.
+A lightweight cloud-native voting application built with **React**, **Node.js (Express)**, and **PostgreSQL**, ready to run with **Docker Compose** or on a local **Kubernetes (Kind)** cluster.
 
 ---
 
-## Project Structure
+## Architecture
 
-```
-├── .github/
-│   └── workflows/
-│       └── ci.yml               # GitHub Actions CI for Docker image builds
-├── docker-compose.yml           # Docker Compose definition for local orchestration
-├── k8s-specifications/          # Kubernetes manifests
-│   ├── db-deployment.yaml
-│   ├── db-service.yaml
-│   ├── result-deployment.yaml
-│   ├── result-service.yaml
-│   ├── vote-deployment.yaml
-│   └── vote-service.yaml
-├── kind-cluster/                # Kind cluster configuration and scripts
-│   ├── config.yml               # Multi-node Kind cluster spec
-│   ├── commands.md              # Cluster operations reference
-│   ├── install_kind.sh
-│   └── install_kubectl.sh
-├── result/                      # Result service (React + Node.js + Socket.io)
-│   ├── client/                  # React 18 frontend source (Vite)
-│   ├── Dockerfile
-│   ├── package.json
-│   └── server.js
-└── vote/                        # Vote service (React + Node.js + Express)
-    ├── client/                  # React 18 frontend source (Vite)
-    ├── Dockerfile
-    ├── package.json
-    └── server.js
-```
+- **Vote (`vote/`)**: React 18 SPA + Node.js/Express API (port 5000 / NodePort 31002).
+- **Result (`result/`)**: React 18 SPA + Node.js/Express + Socket.io for live updates (port 5001 / NodePort 31001).
+- **Database (`db`)**: PostgreSQL 15 for data persistence (port 5432).
 
 ---
 
-## Quickstart: Local Development with Docker Compose
+## Running with Docker Compose (Fastest)
 
-To test the application locally without Kubernetes:
+To run the entire app locally without Kubernetes:
 
 ```bash
 docker compose up --build -d
 ```
 
-- **Vote Application**: http://localhost:5000
-- **Live Results Dashboard**: http://localhost:5001
+- **Vote UI**: http://localhost:5000
+- **Live Results UI**: http://localhost:5001
 
-To stop the containers:
-
+To stop:
 ```bash
 docker compose down -v
 ```
 
 ---
 
-## Kubernetes Deployment (Kind)
+## Running on Kubernetes (Kind)
 
-### 1. Create Kind Cluster
-
+### 1. Create the Kind Cluster
+If you haven't created the cluster yet:
 ```bash
-cd kind-cluster
-kind create cluster --config=config.yml
+kind create cluster --config=kind-cluster/config.yml
 ```
 
-### 2. Build Container Images
-
+### 2. Build and Load Images
+Build the container images locally and load them into the Kind nodes:
 ```bash
+# Build images
 docker build -t votingapp_vote:v2 ./vote
 docker build -t votingapp_result:v2 ./result
-```
 
-### 3. Load Images to Kind
-
-```bash
+# Load into Kind
 kind load docker-image votingapp_vote:v2 --name kind
 kind load docker-image votingapp_result:v2 --name kind
 ```
 
-### 4. Deploy Manifests
-
+### 3. Deploy Kubernetes Manifests
 ```bash
 kubectl apply -f k8s-specifications/
 ```
 
-Verify that all pods are up and healthy:
-
+Verify all pods are running:
 ```bash
-kubectl get pods,svc -o wide
+kubectl get pods
 ```
 
-### 5. Access Services
-
+### 4. Access the Application
+Forward ports to access the services from your browser:
 ```bash
-# Port-forward Vote service:
+# Terminal 1: Vote App (http://localhost:5000)
 kubectl port-forward service/vote 5000:5000 --address=0.0.0.0
 
-# Port-forward Result service:
+# Terminal 2: Result App (http://localhost:5001)
 kubectl port-forward service/result 5001:5001 --address=0.0.0.0
 ```
 
 ---
 
-## Technologies Used
-
-- **Frontend**: React 18, Vite, CSS3, FontAwesome, Socket.io-client
-- **Backend**: Node.js, Express.js, Socket.io, `pg` (node-postgres)
-- **Database**: PostgreSQL 15
-- **Containerization**: Docker multi-stage builds, Docker Compose
-- **Orchestration**: Kubernetes, Kind (Kubernetes in Docker)
-- **CI/CD**: GitHub Actions
-
----
-
-## License
-
-This project is licensed under the MIT License.
+## Cleanup Kind Cluster
+```bash
+kind delete cluster --name=kind
+```
